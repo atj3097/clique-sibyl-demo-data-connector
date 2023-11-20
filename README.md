@@ -2,8 +2,7 @@
 
 ## Setup
 
-### Environment 
-
+### Environment
 - Ubuntu 20.04 with Linux Kernel ≥ 5.11
 - CPU: Intel Xeon E-2288G
 - Docker (>= 20.10.21) & Docker-Compose

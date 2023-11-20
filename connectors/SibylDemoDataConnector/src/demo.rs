@@ -1,13 +1,15 @@
+// src/etherscan_connector.rs
 use std::prelude::v1::*;
 use sibyl_base_data_connector::utils::simple_tls_client;
 use sibyl_base_data_connector::base::DataConnector;
 use sibyl_base_data_connector::serde_json::Value;
 use sibyl_base_data_connector::errors::NetworkError;
-use std::convert::TryInto;
+use std::env;
+use crate::env;
 
-pub struct DemoConnector {}
+pub struct EtherscanConnector {}
 
-impl DataConnector for DemoConnector {
+impl DataConnector for EtherscanConnector {
   fn query(&self, query_type: &Value, query_param: &Value) -> Result<Value, NetworkError> {
     let query_type_str = match query_type.as_str() {
       Some(r) => r,
@@ -18,35 +20,20 @@ impl DataConnector for DemoConnector {
       }
     };
     match query_type_str {
-      "demo_post" => {
-        let host = query_param["host"].as_str().unwrap_or("");
-        let port = query_param["port"].as_i64().unwrap_or(443);
-        let post_body = query_param["post_body"].as_str().unwrap_or("");
-        let url = query_param["url"].as_str().unwrap_or("/");
-        let req = format!(
-          "POST {} HTTP/1.1\r\n\
-          HOST: {}\r\n\
-          User-Agent: curl/7.79.1\r\n\
-          Accept: */*\r\n\
-          Content-Type: application/json\r\n\
-          Content-Length: {}\r\n\r\n\
-          {}",
-          url, host, post_body.len(), post_body 
-        );
-        simple_tls_client(host, &req, port.try_into().unwrap())
-      },
-      "demo_get" => {
-        let host = query_param["host"].as_str().unwrap_or("");
-        let port = query_param["port"].as_i64().unwrap_or(443);
-        let url = query_param["url"].as_str().unwrap_or("/");
+      "get_balance" => {
+        let address = query_param["address"].as_str().unwrap_or("");
+        let api_key = env::var("ETHERSCAN_API_KEY").expect("Expected ETHERSCAN_API_KEY in the environment");
+        let url = format!("{}?module=account&action=balance&address={}&tag=latest&apikey={}",
+                          env::ETHERSCAN_API_SUFFIX, address, api_key);
+
         let req = format!(
           "GET {} HTTP/1.1\r\n\
-          HOST: {}\r\n\
+          Host: {}\r\n\
           User-Agent: curl/7.79.1\r\n\
-          Accept: */*\r\n\r\n", 
-          url, host 
+          Accept: */*\r\n\r\n",
+          url, env::ETHERSCAN_API_HOST
         );
-        simple_tls_client(host, &req, port.try_into().unwrap())
+        simple_tls_client(env::ETHERSCAN_API_HOST, &req, 443)
       },
       _ => {
         Err(NetworkError::String(format!("Unexpected query_type: {:?}", query_type)))
