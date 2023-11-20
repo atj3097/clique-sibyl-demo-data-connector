@@ -1,4 +1,5 @@
-# clique-sibyl-demo-data-connector
+# clique-sibyl-etherscan-data-connector
+Attempt at creating an etherscan data connector to retrieve the balance of an eth address from etherscan. 
 
 ## Setup
 
